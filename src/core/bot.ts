@@ -115,13 +115,34 @@ export function autoArrange(run: RunState): void {
 
 function packScore(run: RunState, inst: PackInstance): number {
   const def = getPack(inst.defId);
-  const avg = def.cards * (def.weights.rare * 2 + def.weights.epic * 4 + def.weights.legendary * 8 + def.weights.uncommon) / 100;
-  let s = def.cards + avg;
+  const avg = (def.weights.rare * 2 + def.weights.epic * 4 + def.weights.legendary * 8 + def.weights.uncommon) / 100;
+  // Only one card is kept, so more cards just means more choice.
+  let s = Math.sqrt(def.cards) + avg * 2;
   const top = topMomentumTrait(run.momentum);
   if (top && inst.traits?.includes(top)) s += 3;
   if (def.special === 'duplicate' || def.special === 'mirror') s += 2;
   if (def.special === 'artifact') s += 2;
   return s;
+}
+
+/** Picks which revealed cards to keep: merges first, then rarity and shared traits. */
+export function pickCards(run: RunState): number[] {
+  const o = run.opened;
+  if (!o) return [];
+  const board = boardUnits(run.roster).map((u) => (u.hero ? getHero(u.defId) : getUnit(u.defId)));
+  const traits = new Map<string, number>();
+  for (const d of board) for (const t of [d.origin, d.cls]) traits.set(t, (traits.get(t) ?? 0) + 1);
+  const score = (i: number) => {
+    const c = o.cards[i];
+    const d = getUnit(c.unitId);
+    let s = rarityIndex(c.rarity) * 3 + (traits.get(d.origin) ?? 0) + (traits.get(d.cls) ?? 0);
+    if (c.willMerge) s += 6;
+    return s;
+  };
+  return o.cards
+    .map((_, i) => i)
+    .sort((a, b) => score(b) - score(a) || a - b)
+    .slice(0, o.keep);
 }
 
 /** Sells the weakest units until nothing is pending. */
@@ -156,9 +177,12 @@ export function botStep(run: RunState, rng: Rng): boolean {
     case 'starter':
       chooseStarter(run, rng.int(0, 1));
       return true;
-    case 'packOpen':
-      collectOpened(run, 0);
+    case 'packOpen': {
+      const o = run.opened!;
+      if (o.artifactChoices) collectOpened(run, 0);
+      else collectOpened(run, pickCards(run));
       return true;
+    }
     case 'overflow':
       resolveOverflow(run);
       return true;

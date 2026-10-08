@@ -19,15 +19,16 @@ describe('content', () => {
     }
   });
 
-  it('has about 15 artifacts across all tiers, with at least 3 that raise the board limit', () => {
-    expect(ARTIFACTS.length).toBeGreaterThanOrEqual(14);
+  it('has varied artifacts across all tiers, and only a few raise the board limit', () => {
+    expect(ARTIFACTS.length).toBeGreaterThanOrEqual(24);
     for (const tier of ['common', 'uncommon', 'rare', 'boss']) expect(ARTIFACTS.some((a) => a.tier === tier), tier).toBe(true);
     const limit = ARTIFACTS.filter((a) => a.effects.some((e) => e.k === 'boardLimit'));
-    expect(limit.length).toBeGreaterThanOrEqual(3);
-    // Boss artifacts are the main route to the higher limits.
-    const bossLimit = limit.filter((a) => a.tier === 'boss').reduce((s, a) => s + a.effects.reduce((n, e) => n + (e.k === 'boardLimit' ? e.n : 0), 0), 0);
-    const otherLimit = limit.filter((a) => a.tier !== 'boss').reduce((s, a) => s + a.effects.reduce((n, e) => n + (e.k === 'boardLimit' ? e.n : 0), 0), 0);
-    expect(bossLimit).toBeGreaterThanOrEqual(otherLimit);
+    expect(limit.length).toBeGreaterThanOrEqual(1);
+    expect(limit.length).toBeLessThanOrEqual(3);
+    // Bosses (+1 slot each) are the main route to bigger boards, not artifacts.
+    expect(ARTIFACTS.filter((a) => a.tier === 'boss').some((a) => !a.effects.some((e) => e.k === 'boardLimit'))).toBe(true);
+    const kinds = new Set(ARTIFACTS.flatMap((a) => a.effects.map((e) => e.k)));
+    expect(kinds.size).toBeGreaterThanOrEqual(15);
     for (const a of ARTIFACTS) for (const e of a.effects) if (e.k === 'traitOdds') expect(getTrait(e.trait)).toBeDefined();
   });
 

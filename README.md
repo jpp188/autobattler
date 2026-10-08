@@ -19,7 +19,7 @@ npm run dev        # play at http://localhost:5173
 npm run build      # typecheck + production build into dist/
 npm run preview    # serve the production build
 npm test           # Vitest unit and simulation tests
-npm run sim        # bot plays 50 full runs and reports win rate (npm run sim -- 200 7 for 200 runs from seed 7)
+npm run sim        # bot plays 50 full runs from Act I and reports win rate (npm run sim -- 200 7 for 200 runs from seed 7, add --prologue to include it)
 npm run battle     # prints a headless battle log
 npm run e2e        # builds, then clicks through the game in Chromium at 3 viewports
 ```
@@ -52,6 +52,7 @@ Everything works with a mouse or with touch alone.
 
 | Action | Mouse | Touch |
 | --- | --- | --- |
+| Keep a unit from a pack | Flip the cards, click the one to keep, then KEEP | Same, with taps |
 | Place or move a unit | Drag it to a blue hex or a bench slot | Tap the unit, then tap a hex or slot (dragging works too) |
 | Inspect a unit | Click it | Tap it |
 | Read a tooltip (traits, packs and their odds, artifacts, map nodes) | Hover | Press and hold |
@@ -66,13 +67,20 @@ Everything works with a mouse or with touch alone.
 1. Choose one of 3 Heroes (each with 2 traits, 2 passives, an ultimate and a
    run perk) and a skin.
 2. Pick a starter pack: a themed pack of Commons sharing a trait, or a mixed
-   Uncommon pack.
-3. The Prologue (5 nodes) teaches placing units, shopping, merging, traits and
-   bosses. Then come Acts I to III, each a branching 15-floor map with
-   battles, elites, shops, events, rest spots, treasure and one of two bosses.
-4. After every fight you choose a free pack. Traits you keep active build
-   momentum, which improves your pulls, stats and pack choices.
-5. If your Hero dies, the run ends. Beat the Act III boss to win.
+   Uncommon pack. It shows 4 units and you keep 2.
+3. Your first run on a save starts with the Prologue (5 nodes), which teaches
+   placing units, shopping, merging, traits and bosses. Every later run skips
+   it and starts in Act I with the Prologue's board slot already earned.
+   Acts I to III are each a branching 15-floor map with battles, elites,
+   shops, events, rest spots, treasure and one of two bosses.
+4. After every fight you choose a free pack. Every pack reveals its cards and
+   you keep only 1 of them, so pick for merges and traits. Traits you keep
+   active build momentum, which improves your pulls, stats and pack choices.
+5. Your board starts with 5 slots (the Hero included). Each boss you beat
+   adds 1 slot; only a couple of rare artifacts add more.
+6. Enemy groups grow as you go deeper: extra enemies join fights every few
+   floors, more in later acts, and they turn 2★ further in.
+7. If your Hero dies, the run ends. Beat the Act III boss to win.
 
 Meta progress (collection, achievements, skins) is cosmetic and never changes
 run difficulty.
@@ -148,10 +156,11 @@ Add an entry to `PACKS` in `src/data/packs.ts`:
 {
   id: 'lantern_pack',
   name: 'Lantern Pack',
-  desc: '4 units. Slot 4 is Rare or better.',
+  desc: 'Keep 1 of 4 units. One is Rare or better.',
   color: '#e8504a',                                  // pack art colour
   icon: 'card',
   cards: 4,
+  keep: 1,                                           // optional: cards the player keeps (default 1)
   weights: { common: 50, uncommon: 30, rare: 15, epic: 4, legendary: 1 },
   guaranteed: [{ slot: 3, minRarity: 'rare' }],      // optional
   filter: { roles: ['caster', 'support'] },          // optional: traits, rarities, roles
@@ -177,7 +186,9 @@ Add an entry to `ARTIFACTS` in `src/data/artifacts.ts`:
 Effect kinds (`boardLimit`, `benchSlots`, `goldPerWin`, `traitOdds`,
 `rarityLuck`, `startCharge`, `heroHealAfterFight`, `shopDiscount`,
 `teamStats`, `heroStats`, `actStarUp`, `heroMaxHp`, `extraPackChoice`,
-`interest`, `sellBonus`) are listed in `src/core/types.ts`; tiers are
+`interest`, `sellBonus`, `unitStats` and `unitPassive` with a unit filter
+(roles, front or back row, max star, Hero only), `enemyStats`, `restHeal`,
+`freeRerolls`) are listed in `src/core/types.ts`; tiers are
 `common`, `uncommon`, `rare` and `boss`. The icon is drawn from `icon` and
 `color`.
 

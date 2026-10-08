@@ -4,7 +4,7 @@ import { Battle, type BattleResult } from '../src/core/combat';
 import { CONFIG } from '../src/core/config';
 import { Rng } from '../src/core/rng';
 import { MemoryStore, SaveSystem } from '../src/core/save';
-import { buildBattle, enterNode, heroMaxHp, newRun, resolveBattle, skipReward, startAct, type RunState } from '../src/core/run';
+import { buildBattle, chooseStarter, collectOpened, encounterUnits, enterNode, heroMaxHp, newRun, reinforcementCount, resolveBattle, skipReward, startAct, type RunState } from '../src/core/run';
 import { validateRunState } from '../src/core/validate';
 
 function playUntil(run: RunState, rng: Rng, done: (r: RunState) => boolean, max = 5000): RunState {
@@ -36,6 +36,55 @@ function toFirstBattle(seed: number): RunState {
   const run = newRun('kaede', 'kaede_default', seed);
   return playUntil(run, new Rng(seed), (r) => r.screen === 'battle');
 }
+
+describe('packs keep only some cards', () => {
+  it('the starter shows 4 units and keeps the 2 chosen', () => {
+    const run = newRun('kaede', 'kaede_default', 7);
+    chooseStarter(run, 1);
+    const o = run.opened!;
+    expect(o.cards).toHaveLength(4);
+    expect(o.keep).toBe(2);
+    collectOpened(run, [3, 1]);
+    // Count copies (a 2★ is two merged copies).
+    const copies = run.roster.units.filter((u) => !u.hero).flatMap((u) => Array(2 ** (u.star - 1)).fill(u.defId));
+    expect(copies.sort()).toEqual([o.cards[3].unitId, o.cards[1].unitId].sort());
+  });
+
+  it('other packs keep exactly 1 unit', () => {
+    const run = newRun('gorou', 'gorou_default', 8);
+    const rng = new Rng(8);
+    let checked = 0;
+    for (let i = 0; i < 3000 && checked < 5 && run.screen !== 'over' && run.screen !== 'victory'; i++) {
+      if (run.screen === 'packOpen' && run.opened && !run.opened.artifactChoices && run.opened.defId !== 'themed_starter' && run.opened.defId !== 'uncommon_starter') {
+        const before = run.stats.unitsCollected;
+        expect(run.opened.keep).toBe(1);
+        collectOpened(run, [0, 1, 2]);
+        expect(run.stats.unitsCollected - before).toBe(1);
+        checked++;
+        continue;
+      }
+      botStep(run, rng);
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+});
+
+describe('enemy reinforcements', () => {
+  it('more enemies join deeper into each act, and none in the Prologue', () => {
+    expect(reinforcementCount(0, 4, 'battle')).toBe(0);
+    expect(reinforcementCount(1, 0, 'battle')).toBe(0);
+    expect(reinforcementCount(1, 12, 'battle')).toBeGreaterThan(reinforcementCount(1, 4, 'battle'));
+    expect(reinforcementCount(3, 0, 'battle')).toBeGreaterThan(reinforcementCount(1, 0, 'battle'));
+  });
+
+  it('places reinforcements on free hexes, deterministically', () => {
+    const base = [{ unit: 'bamboo_bandit', star: 1 as const, col: 3, row: 0 }];
+    const a = encounterUnits(2, 14, 'battle', base, 123);
+    expect(a.length).toBe(1 + reinforcementCount(2, 14, 'battle'));
+    expect(new Set(a.map((u) => `${u.col},${u.row}`)).size).toBe(a.length);
+    expect(encounterUnits(2, 14, 'battle', base, 123)).toEqual(a);
+  });
+});
 
 describe('run flow', () => {
   it('save, reload and resume gives the identical run', () => {

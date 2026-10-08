@@ -115,8 +115,11 @@ async function run(vp) {
   await sleep(300);
   await press(page, vp.touch, 'FLIP ALL');
   await sleep(1800);
+  // The starter keeps 2 of its 4 units.
+  await press(page, vp.touch, 'card-0');
+  await press(page, vp.touch, 'card-2');
   await shot('4-pack-opening');
-  await press(page, vp.touch, 'CONTINUE');
+  await press(page, vp.touch, 'KEEP');
   await sleep(1500);
   // Merges or overflow may come before the map.
   for (let i = 0; i < 3 && !(await scene(page)).includes('Map'); i++) {

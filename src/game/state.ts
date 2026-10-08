@@ -35,7 +35,7 @@ class GameState {
   }
 
   startRun(heroId: string, skinId: string, seed = randomSeed()): RunState {
-    this.run = newRun(heroId, skinId, seed);
+    this.run = newRun(heroId, skinId, seed, { skipPrologue: this.meta.prologueDone });
     this.runAchievements = [];
     this.meta.selectedSkin[heroId] = skinId;
     this.meta.stats.runs++;
@@ -46,6 +46,10 @@ class GameState {
 
   saveRun(): void {
     if (this.run) {
+      if (this.run.act >= 1 && !this.meta.prologueDone) {
+        this.meta.prologueDone = true;
+        this.saveMeta();
+      }
       this.syncCollection();
       this.checkAchievements();
       this.save.saveRun(this.run);

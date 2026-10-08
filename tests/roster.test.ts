@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addUnit, boardUnits, moveUnit, resolveMerges, type RosterState } from '../src/core/roster';
-import { gainArtifact, newRun } from '../src/core/run';
+import { gainArtifact, newRun, refreshLimits } from '../src/core/run';
 import { CONFIG } from '../src/core/config';
 
 function roster(): RosterState {
@@ -90,18 +90,29 @@ describe('board limit', () => {
     expect(boardUnits(r)).toHaveLength(2);
   });
 
-  it('starts at 5 including the Hero and artifacts raise it up to the cap', () => {
+  it('starts at 5 including the Hero; artifacts and bosses raise it up to the cap', () => {
     const run = newRun('kaede', 'kaede_default', 1);
     expect(run.roster.boardLimit).toBe(5);
     expect(boardUnits(run.roster).filter((u) => u.hero)).toHaveLength(1);
     gainArtifact(run, 'war_banner');
     expect(run.roster.boardLimit).toBe(6);
     gainArtifact(run, 'imperial_standard');
-    expect(run.roster.boardLimit).toBe(8);
-    gainArtifact(run, 'temple_gong');
+    expect(run.roster.boardLimit).toBe(7);
     gainArtifact(run, 'oni_crown');
-    gainArtifact(run, 'phoenix_feather');
+    expect(run.roster.boardLimit).toBe(7);
+    run.bossSlots = 1;
+    refreshLimits(run);
+    expect(run.roster.boardLimit).toBe(8);
+    run.bossSlots = 3;
+    refreshLimits(run);
     expect(run.roster.boardLimit).toBe(CONFIG.board.maxLimit);
+  });
+
+  it('a run that skips the Prologue starts in Act I with the Prologue boss slot', () => {
+    const run = newRun('kaede', 'kaede_default', 1, { skipPrologue: true });
+    expect(run.act).toBe(1);
+    expect(run.screen).toBe('starter');
+    expect(run.roster.boardLimit).toBe(6);
   });
 
   it('the Hero cannot be benched', () => {

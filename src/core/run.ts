@@ -3,7 +3,7 @@
  * Scenes call these functions and then save; nothing here touches Phaser.
  * The state is plain JSON so it can be saved and resumed exactly.
  */
-import { artifactTotals, type ArtifactTotals } from './artifacts';
+import { artifactTotals, matchesFilter, type ArtifactTotals } from './artifacts';
 import { buildTeam, type TeamMember } from './battleSetup';
 import type { BattleResult, BattleSetup } from './combat';
 import { CONFIG } from './config';
@@ -27,7 +27,7 @@ import {
 } from './roster';
 import { activeTraitIds, countTraits, traitGoldPerWin } from './traits';
 import { combatStats } from './units';
-import { rarityIndex, type ArtifactTier, type CombatStatKey, type Outcome, type PackInstance, type Rarity, type Star, type StatKey } from './types';
+import { rarityIndex, type ArtifactTier, type EncounterUnit, type CombatStatKey, type Outcome, type PackInstance, type Rarity, type Star, type StatKey } from './types';
 import {
   ARTIFACTS,
   bossesForAct,
@@ -45,6 +45,7 @@ import {
   ORIGIN_IDS,
   PACK_UNITS,
   PACKS,
+  REINFORCEMENTS,
   TRAITS,
 } from '../data';
 
@@ -77,6 +78,8 @@ export interface OpenedState {
   cards: CardResult[];
   /** Artifact pack: choose one of these instead of units. */
   artifactChoices: string[] | null;
+  /** How many of the cards the player keeps. */
+  keep: number;
   then: Screen;
 }
 
@@ -167,6 +170,10 @@ export interface RunState {
   overflowThen: Screen | null;
   /** Pack waiting to be opened when an event finishes. */
   pendingEventPack: PackInstance | null;
+  /** Board slots earned by beating bosses (+1 per boss). */
+  bossSlots?: number;
+  /** Free shop rerolls left in the current shop. */
+  freeRerollsLeft?: number;
 }
 
 // ------------------------------------------------------------------ helpers
@@ -212,7 +219,7 @@ export function refreshLimits(run: RunState): void {
   const t = totals(run);
   const hero = getHero(run.heroId);
   const perkBench = hero.perk.effect.k === 'benchSlots' ? hero.perk.effect.n : 0;
-  run.roster.boardLimit = clampLimit(CONFIG.board.startLimit + t.boardLimit);
+  run.roster.boardLimit = clampLimit(CONFIG.board.startLimit + t.boardLimit + (run.bossSlots ?? 0));
   run.roster.benchSize = Math.min(CONFIG.board.maxBenchSlots, CONFIG.board.benchSlots + perkBench + t.benchSlots);
   enforceBoardLimit(run.roster);
 }
@@ -273,7 +280,12 @@ export function availableNodes(run: RunState): MapNode[] {
 
 // ------------------------------------------------------------------ new run
 
-export function newRun(heroId: string, skinId: string, seed: number): RunState {
+export interface NewRunOptions {
+  /** Start straight in Act I (the Prologue is played once per save). */
+  skipPrologue?: boolean;
+}
+
+export function newRun(heroId: string, skinId: string, seed: number, opts: NewRunOptions = {}): RunState {
   const hero = getHero(heroId);
   const rng = new Rng(seed);
   const bosses = ['', ...[1, 2, 3].map((a) => rng.pick(bossesForAct(a)).id)];
@@ -325,6 +337,12 @@ export function newRun(heroId: string, skinId: string, seed: number): RunState {
     pendingEventPack: null,
   };
   run.roster.units.push({ uid: run.roster.nextUid++, defId: heroId, star: 1, trained: {}, loc: { at: 'board', col: 3, row: 2 }, hero: true });
+  if (opts.skipPrologue) {
+    // Same footing as a run that cleared the Prologue: its boss slot is already earned.
+    run.bossSlots = 1;
+    startAct(run, 1);
+    run.screen = 'starter';
+  }
   refreshLimits(run);
   run.heroHp = heroMaxHp(run);
   run.starterOptions = [makePack(run, 'themed_starter'), makePack(run, 'uncommon_starter')];
@@ -346,37 +364,50 @@ export function beginOpenPack(run: RunState, inst: PackInstance, then: Screen, i
     cards = withRng(run, (rng) => openPack(def, inst, ctx, PACK_UNITS, rng));
     if (def.cards > 0) run.flags.firstPackThisAct = false;
   }
-  // Tag cards: NEW (never pulled before) and Will merge (a matching 1-star is already owned or earlier in this pack).
+  // Tag cards: NEW (never pulled before) and Will merge (a matching 1-star is already owned).
   const owned1 = new Set(run.roster.units.filter((u) => u.star === 1 && !u.hero).map((u) => u.defId));
-  const counts = new Map<string, number>();
+  const seen = new Set<string>();
   const results: CardResult[] = cards.map((c) => {
-    const prior = counts.get(c.unitId) ?? 0;
-    counts.set(c.unitId, prior + 1);
-    const willMerge = owned1.has(c.unitId) ? prior % 2 === 0 : prior % 2 === 1;
-    return { ...c, isNew: isNew(c.unitId) && prior === 0 && !run.pulled.includes(c.unitId), willMerge };
+    const first = !seen.has(c.unitId);
+    seen.add(c.unitId);
+    return { ...c, isNew: isNew(c.unitId) && first && !run.pulled.includes(c.unitId), willMerge: owned1.has(c.unitId) };
   });
-  const opened: OpenedState = { packName: def.name, defId: def.id, inst, cards: results, artifactChoices, then };
+  const keep = Math.min(def.keep ?? 1, results.length);
+  const opened: OpenedState = { packName: def.name, defId: def.id, inst, cards: results, artifactChoices, keep, then };
   run.opened = opened;
   run.screen = 'packOpen';
   run.stats.packsOpened++;
-  for (const c of results) {
-    run.stats.unitsCollected++;
-    if (!run.pulled.includes(c.unitId)) run.pulled.push(c.unitId);
-    if (!run.stats.bestPull || rarityIndex(c.rarity) > rarityIndex(run.stats.bestPull.rarity)) run.stats.bestPull = { unitId: c.unitId, rarity: c.rarity };
-  }
+  // Every revealed card counts as seen for the collection.
+  for (const c of results) if (!run.pulled.includes(c.unitId)) run.pulled.push(c.unitId);
   return opened;
 }
 
-/** Adds the opened cards to the roster. Returns merges for the merge animation. */
-export function collectOpened(run: RunState, artifactChoice?: number): MergeEvent[] {
+/**
+ * Keeps the chosen cards (or the chosen artifact) and adds them to the roster.
+ * `choice` is the artifact index, or the card indices to keep (up to
+ * `opened.keep`; defaults to the first ones). Returns merges for the animation.
+ */
+export function collectOpened(run: RunState, choice?: number | readonly number[]): MergeEvent[] {
   const o = run.opened;
   if (!o) return [];
   const merges: MergeEvent[] = [];
+  const picks = choice === undefined ? [] : typeof choice === 'number' ? [choice] : [...choice];
   if (o.artifactChoices) {
-    const id = o.artifactChoices[artifactChoice ?? 0];
+    const id = o.artifactChoices[picks[0] ?? 0];
     if (id) gainArtifact(run, id);
   }
-  for (const c of o.cards) merges.push(...addUnit(run.roster, c.unitId).merges);
+  const keep = o.keep ?? o.cards.length;
+  let chosen = [...new Set(picks)].filter((i) => i >= 0 && i < o.cards.length).slice(0, keep);
+  if (!o.artifactChoices && chosen.length < keep) {
+    for (let i = 0; i < o.cards.length && chosen.length < keep; i++) if (!chosen.includes(i)) chosen.push(i);
+  }
+  if (o.artifactChoices) chosen = [];
+  for (const i of chosen) {
+    const c = o.cards[i];
+    run.stats.unitsCollected++;
+    if (!run.stats.bestPull || rarityIndex(c.rarity) > rarityIndex(run.stats.bestPull.rarity)) run.stats.bestPull = { unitId: c.unitId, rarity: c.rarity };
+    merges.push(...addUnit(run.roster, c.unitId).merges);
+  }
   run.opened = null;
   run.overflowThen = o.then;
   run.screen = hasOverflow(run.roster) ? 'overflow' : o.then;
@@ -456,6 +487,7 @@ export function enterNode(run: RunState, nodeId: string): void {
       break;
     case 'shop':
       run.shop = generateShop(run);
+      run.freeRerollsLeft = totals(run).freeRerolls;
       run.screen = 'shop';
       break;
     case 'event':
@@ -561,14 +593,22 @@ export function buildBattle(run: RunState): BattleSetup {
         delete flat.hp;
         delete pct.hp;
       }
+      const row = (u.loc as { row: number }).row;
+      const who = { role: def.role, row, star: u.star, isHero: !!u.hero };
+      for (const us of t.unitStats) {
+        if (!matchesFilter(us.who, who)) continue;
+        const target = us.pct ? pct : flat;
+        for (const [k, v] of Object.entries(us.stats)) target[k as CombatStatKey] = (target[k as CombatStatKey] ?? 0) + (v ?? 0);
+      }
       const m: TeamMember = {
         def,
         star: u.star,
-        hex: playerToGrid((u.loc as { col: number }).col, (u.loc as { row: number }).row),
+        hex: playerToGrid((u.loc as { col: number }).col, row),
         isHero: !!u.hero,
         ownerUid: u.uid,
         stat: u.hero ? { powerMult: heroGrowth(run.act), hpMult: 1, flat, pct } : { flat, pct },
         startCharge: t.startCharge,
+        extraPassives: t.unitPassives.filter((p) => matchesFilter(p.who, who)).map((p) => p.passive),
       };
       if (u.hero) {
         m.stat!.flat = { ...flat, hp: heroMaxHp(run) - hero.stats.hp };
@@ -579,15 +619,53 @@ export function buildBattle(run: RunState): BattleSetup {
   const enc = getEncounter(b.encounter);
   const node = nodeById(run.map, b.nodeId);
   const mult = enemyPower(run.act, node?.floor ?? 0, b.kind);
-  const enemies: TeamMember[] = enc.units.map((eu) => ({
+  const enemies: TeamMember[] = encounterUnits(run.act, node?.floor ?? 0, b.kind, enc.units, b.seed).map((eu) => ({
     def: getUnit(eu.unit),
     star: eu.star,
     hex: enemyToGrid(eu.col, eu.row),
-    stat: { powerMult: mult },
+    stat: { powerMult: mult, flat: { ...t.enemyFlat }, pct: { ...t.enemyPct } },
   }));
   const p = buildTeam(members, 0, TRAITS);
   const e = buildTeam(enemies, 1, TRAITS);
   return { seed: b.seed, units: [...p.inputs, ...e.inputs], lookup: findUnit, summonPower: [1, mult] };
+}
+
+/** Extra enemies that join a fight: more the deeper you go. */
+export function reinforcementCount(act: number, floor: number, kind: 'battle' | 'elite' | 'boss'): number {
+  const E = CONFIG.enemy;
+  if (act <= 0) return 0;
+  let n = E.reinforceBase[Math.min(act, E.reinforceBase.length - 1)] + Math.floor(floor / E.reinforceEveryFloors);
+  if (kind === 'boss') n = act - 1;
+  return Math.min(E.reinforceMax, n);
+}
+
+/** The encounter's units plus reinforcements, placed on free hexes. Deterministic from the battle seed. */
+export function encounterUnits(act: number, floor: number, kind: 'battle' | 'elite' | 'boss', base: readonly EncounterUnit[], seed: number): EncounterUnit[] {
+  const out = [...base];
+  const n = reinforcementCount(act, floor, kind);
+  const pool = REINFORCEMENTS[Math.min(act, REINFORCEMENTS.length - 1)];
+  if (!n || !pool?.length) return out;
+  const rng = new Rng(seed ^ 0x5eed);
+  const taken = new Set(out.map((u) => `${u.col},${u.row}`));
+  const twoStarFrom = CONFIG.enemy.reinforceTwoStarFloor[Math.min(act, CONFIG.enemy.reinforceTwoStarFloor.length - 1)];
+  for (let i = 0; i < n; i++) {
+    const unit = rng.pick(pool);
+    const role = getUnit(unit).role;
+    // Melee units fill the front rows, ranged ones the back.
+    const rows = role === 'tank' || role === 'fighter' || role === 'assassin' ? [0, 1, 2, 3] : [3, 2, 1, 0];
+    let placed = false;
+    for (const row of rows) {
+      const free = [0, 1, 2, 3, 4, 5, 6].filter((c) => !taken.has(`${c},${row}`));
+      if (!free.length) continue;
+      const col = rng.pick(free);
+      taken.add(`${col},${row}`);
+      out.push({ unit, star: floor >= twoStarFrom || kind === 'boss' ? 2 : 1, col, row });
+      placed = true;
+      break;
+    }
+    if (!placed) break;
+  }
+  return out;
 }
 
 export function enemyPower(act: number, floor: number, kind: 'battle' | 'elite' | 'boss'): number {
@@ -692,6 +770,9 @@ export function resolveBattle(run: RunState, result: BattleResult): void {
     }
   }
   if (won && b.kind === 'boss') {
+    run.bossSlots = (run.bossSlots ?? 0) + 1;
+    refreshLimits(run);
+    if (run.act < FINAL_ACT) run.notices.push(`Boss defeated: +1 board slot (now ${run.roster.boardLimit}).`);
     reward.bossArtifactChoices = withRng(run, (rng) => rollArtifacts(run, rng, 3, ['boss']));
     if (!reward.bossArtifactChoices.length) reward.bossArtifactChoices = withRng(run, (rng) => rollArtifacts(run, rng, 3, ['rare', 'uncommon']));
   }
@@ -781,6 +862,7 @@ function generateShop(run: RunState): ShopState {
 }
 
 export function rerollCost(run: RunState): number {
+  if ((run.freeRerollsLeft ?? 0) > 0) return 0;
   const n = run.shop?.rerolls ?? 0;
   const costs = CONFIG.economy.rerollCosts;
   return costs[Math.min(n, costs.length - 1)];
@@ -791,7 +873,9 @@ export function rerollShop(run: RunState): boolean {
   const cost = rerollCost(run);
   if (run.gold < cost) return false;
   run.gold -= cost;
-  const rerolls = run.shop.rerolls + 1;
+  const free = (run.freeRerollsLeft ?? 0) > 0;
+  if (free) run.freeRerollsLeft = (run.freeRerollsLeft ?? 0) - 1;
+  const rerolls = run.shop.rerolls + (free ? 0 : 1);
   const fresh = generateShop(run);
   run.shop = { ...fresh, artifacts: run.shop.artifacts, rerolls, healUsed: run.shop.healUsed, removeUsed: run.shop.removeUsed };
   return true;
@@ -1007,7 +1091,7 @@ export function restHeal(run: RunState): number {
   if (!run.rest || run.rest.done) return 0;
   const max = heroMaxHp(run);
   const before = run.heroHp;
-  run.heroHp = Math.min(max, run.heroHp + Math.round(max * CONFIG.hero.restHealPct));
+  run.heroHp = Math.min(max, run.heroHp + Math.round(max * (CONFIG.hero.restHealPct + totals(run).restHeal / 100)));
   run.rest.done = true;
   run.rest.text = `Your Hero rests and recovers ${run.heroHp - before} HP.`;
   return run.heroHp - before;

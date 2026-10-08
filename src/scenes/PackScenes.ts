@@ -70,6 +70,9 @@ export class PackOpenScene extends BaseScene {
   private contBtn!: Button;
   private chosenArtifact = -1;
   private artifactSel: Phaser.GameObjects.Rectangle[] = [];
+  private chosenCards: number[] = [];
+  private cardSel = new Map<number, Phaser.GameObjects.GameObject[]>();
+  private benchWarn: Phaser.GameObjects.GameObject | null = null;
   private busy = false;
   private emitter!: Phaser.GameObjects.Particles.ParticleEmitter;
 
@@ -92,6 +95,9 @@ export class PackOpenScene extends BaseScene {
     this.tags = [];
     this.chosenArtifact = -1;
     this.artifactSel = [];
+    this.chosenCards = [];
+    this.cardSel = new Map();
+    this.benchWarn = null;
     this.busy = false;
     drawBackdrop(this, run.act, 'menu');
     new RunHud(this, run, this.tip, 'Opening a pack');
@@ -109,7 +115,8 @@ export class PackOpenScene extends BaseScene {
 
     const isArtifact = !!o.artifactChoices;
     const n = isArtifact ? o.artifactChoices!.length : o.cards.length;
-    label(this, GAME_W / 2, 42, isArtifact ? 'Flip the cards, then choose one artifact.' : 'Tap a card to flip it, or flip them all.', { color: T.dim, origin: [0.5, 0] });
+    const keepText = o.keep === 1 ? 'keep 1 unit' : `keep ${o.keep} units`;
+    label(this, GAME_W / 2, 42, isArtifact ? 'Flip the cards, then choose one artifact.' : `Flip the cards, then ${keepText}. The rest are lost.`, { color: T.dim, origin: [0.5, 0] });
     const gap = 74;
     const x0 = GAME_W / 2 - ((n - 1) * gap) / 2 - CARD_W / 2;
     for (let i = 0; i < n; i++) {
@@ -141,6 +148,7 @@ export class PackOpenScene extends BaseScene {
   private flip(i: number): void {
     if (this.flipped[i]) {
       if (G.run!.opened?.artifactChoices) this.selectArtifact(i);
+      else this.selectCard(i);
       return;
     }
     this.flipped[i] = true;
@@ -163,6 +171,9 @@ export class PackOpenScene extends BaseScene {
       const card = o.cards[i];
       rarity = card.rarity;
       face = unitCard(this, x, y, getUnit(card.unitId), this.tip);
+      const zone = this.add.zone(0, 0, CARD_W, CARD_H).setOrigin(0, 0).setInteractive().setName(`card-${i}`);
+      zone.on('pointerup', () => this.selectCard(i));
+      face.add(zone);
     }
     face.setDepth(20).setVisible(false);
     this.faces[i] = face;
@@ -241,12 +252,46 @@ export class PackOpenScene extends BaseScene {
         y += 10;
       }
     });
-    const bench = freeBenchSlots(run.roster).length;
-    const incoming = o.cards.length - o.cards.filter((c) => c.willMerge).length;
-    if (incoming > bench) {
-      this.tags.push(label(this, GAME_W / 2, 276, `Your bench is full: you will choose what to keep next.`, { color: T.bad, origin: [0.5, 0] }));
+    if (o.cards.length) {
+      this.tags.push(label(this, GAME_W / 2, 276, o.keep === 1 ? 'Tap the unit you want to keep.' : `Tap ${o.keep} units to keep.`, { color: T.gold, origin: [0.5, 0] }));
     }
-    this.contBtn.setEnabled(true);
+    this.contBtn.setLabel('KEEP');
+    this.updateKeep();
+  }
+
+  private selectCard(i: number): void {
+    const o = G.run!.opened;
+    if (!o || o.artifactChoices || !this.flipped.every(Boolean)) return;
+    const at = this.chosenCards.indexOf(i);
+    if (at >= 0) {
+      this.chosenCards.splice(at, 1);
+      this.cardSel.get(i)?.forEach((g) => g.destroy());
+      this.cardSel.delete(i);
+    } else {
+      // Picking past the limit swaps out the oldest choice.
+      if (this.chosenCards.length >= o.keep) this.selectCard(this.chosenCards[0]);
+      this.chosenCards.push(i);
+      const b = this.spots[i];
+      const r = this.add.rectangle(b.x - 3, b.y - 3, CARD_W + 6, CARD_H + 6).setOrigin(0, 0).setStrokeStyle(2, 0xffd24a).setDepth(30);
+      const t = label(this, b.x + CARD_W / 2, b.y - 12, 'KEEP', { font: 'title', color: T.gold, origin: [0.5, 0], stroke: true }).setDepth(31);
+      this.cardSel.set(i, [r, t]);
+      Sfx.play('click');
+    }
+    this.faces.forEach((f, j) => f?.setAlpha(this.chosenCards.length >= o.keep && !this.chosenCards.includes(j) ? 0.55 : 1));
+    this.updateKeep();
+  }
+
+  private updateKeep(): void {
+    const run = G.run!;
+    const o = run.opened;
+    if (!o || o.artifactChoices) return;
+    this.contBtn.setEnabled(this.chosenCards.length === Math.min(o.keep, o.cards.length));
+    this.benchWarn?.destroy();
+    this.benchWarn = null;
+    const incoming = this.chosenCards.filter((i) => !o.cards[i].willMerge).length;
+    if (incoming > freeBenchSlots(run.roster).length) {
+      this.benchWarn = label(this, GAME_W / 2, 288, 'Your bench is full: you will choose what to sell next.', { color: T.bad, origin: [0.5, 0] });
+    }
   }
 
   private selectArtifact(i: number): void {
@@ -269,8 +314,9 @@ export class PackOpenScene extends BaseScene {
       return;
     }
     if (o.artifactChoices && this.chosenArtifact < 0) return;
+    if (!o.artifactChoices && this.chosenCards.length < Math.min(o.keep, o.cards.length)) return;
     this.busy = true;
-    const merges = collectOpened(run, Math.max(0, this.chosenArtifact));
+    const merges = collectOpened(run, o.artifactChoices ? Math.max(0, this.chosenArtifact) : this.chosenCards);
     G.saveRun();
     if (merges.length) this.playMerges(merges, () => goRun(this));
     else goRun(this);

@@ -56,3 +56,11 @@ export const ENCOUNTERS: readonly EncounterDef[] = [
 export function bossesForAct(act: number): EncounterDef[] {
   return ENCOUNTERS.filter((e) => e.act === act && e.kind === 'boss');
 }
+
+/** Units that join fights as reinforcements, per act (index = act). */
+export const REINFORCEMENTS: readonly (readonly string[])[] = [
+  [],
+  ['bamboo_bandit', 'wild_boar', 'onibi', 'kodama', 'saru_archer', 'tanuki', 'kitsune_cub'],
+  ['tengu_scout', 'stone_lantern', 'bone_archer', 'yamabushi', 'oni_grunt', 'chochin', 'ashigaru'],
+  ['star_knight', 'thunder_priest', 'void_crane', 'heavenly_lion', 'moon_rabbit'],
+];

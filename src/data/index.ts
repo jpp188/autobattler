@@ -47,9 +47,9 @@ import type { ArtifactDef, EncounterDef, EventDef, PackDef } from '../core/types
 import { PACKS } from './packs';
 import { ARTIFACTS } from './artifacts';
 import { EVENTS } from './events';
-import { ENCOUNTERS, bossesForAct } from './encounters';
+import { ENCOUNTERS, REINFORCEMENTS, bossesForAct } from './encounters';
 
-export { PACKS, ARTIFACTS, EVENTS, ENCOUNTERS, bossesForAct };
+export { PACKS, ARTIFACTS, EVENTS, ENCOUNTERS, REINFORCEMENTS, bossesForAct };
 
 export const PACK_MAP: ReadonlyMap<string, PackDef> = new Map(PACKS.map((p) => [p.id, p]));
 const artifactMap = new Map<string, ArtifactDef>(ARTIFACTS.map((a) => [a.id, a]));
