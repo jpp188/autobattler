@@ -181,7 +181,7 @@ export class BattleScene extends BaseScene {
   private benchPos(slot: number): { x: number; y: number } {
     const n = G.run!.roster.benchSize;
     const x0 = Math.round(GAME_W / 2 - (n * 32) / 2) + 16;
-    return { x: x0 + slot * 32, y: BENCH_Y + 26 };
+    return { x: x0 + slot * 32, y: BENCH_Y + 28 };
   }
 
   private locPos(loc: UnitLoc): { x: number; y: number } {
@@ -204,8 +204,9 @@ export class BattleScene extends BaseScene {
     });
     this.sellBtn = button(this, 228, y + 10, 92, 22, 'SELL', () => this.trySell());
     this.fightBtn = button(this, 330, y + 6, 150, 30, 'FIGHT!', () => this.startFight(), { size: 16 });
-    const help = label(this, 488, y + 4, 'Drag units to the blue hexes,\nor tap a unit then tap a hex.\nTap a unit to inspect it.', { color: T.dim });
-    this.setupUi.push(this.countText, this.autoBtn, this.sellBtn, this.fightBtn, help);
+    const helpBg = panel(this, 484, y, 152, 36, 'dark').setAlpha(0.85);
+    const help = label(this, 490, y + 4, 'Drag units to the blue hexes,\nor tap a unit then tap a hex.\nTap a unit to inspect it.', { color: T.dim });
+    this.setupUi.push(this.countText, this.autoBtn, this.sellBtn, this.fightBtn, helpBg, help);
     if (mechanic) {
       const mp = panel(this, 120, 304, 400, 26, 'dark');
       const mt = label(this, 128, 309, `Boss: ${mechanic}`, { color: '#ff9a7a', wrap: 384 });

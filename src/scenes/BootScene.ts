@@ -8,7 +8,8 @@ import { label } from '../ui/widgets';
 
 /**
  * Generates all code-drawn textures, loads any real sprite sheets listed in
- * public/sprites/manifest.json, loads the saves and goes to the title.
+ * public/sprites/manifest.json (unit sheets under "sprites", backgrounds and
+ * event pictures under "images"), loads the saves and goes to the title.
  */
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -23,14 +24,17 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(): void {
-    const manifest = this.cache.json.get('spriteManifest') as { sprites?: string[] } | undefined;
+    const manifest = this.cache.json.get('spriteManifest') as { sprites?: string[]; images?: string[] } | undefined;
     const keys = manifest?.sprites ?? [];
+    const images = manifest?.images ?? [];
     G.load();
-    if (!keys.length) {
+    if (!keys.length && !images.length) {
       this.scene.start('Title');
       return;
     }
     for (const k of keys) this.load.image(`ext_raw_${k}`, `sprites/${k}.png`);
+    // Whole images: act backgrounds (bg_0..bg_3) and event illustrations (event_<art>).
+    for (const k of images) this.load.image(`ext_${k}`, `sprites/${k}.png`);
     this.load.once('complete', () => {
       for (const k of keys) {
         const raw = `ext_raw_${k}`;

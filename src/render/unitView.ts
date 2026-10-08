@@ -42,7 +42,7 @@ export class UnitView extends Phaser.GameObjects.Container {
     this.sprite = scene.add.sprite(0, 2, key, FRAMES.idle1).setOrigin(0.5, 1);
     if (o.enemy) this.sprite.setFlipX(true);
     this.add([this.shadow, this.sprite]);
-    const top = -this.size - 1;
+    const top = -this.size + 3;
     if (o.bars !== false) {
       const bw = o.hero ? 26 : 18;
       this.hpBar = new Bar(scene, -bw / 2, top, bw, 3, o.enemy ? C.enemyHp : o.hero ? C.gold : C.hp, 0x07050b);
@@ -52,7 +52,7 @@ export class UnitView extends Phaser.GameObjects.Container {
       this.add([this.hpBar, this.chargeBar]);
     }
     for (let i = 0; i < star; i++) {
-      const img = scene.add.image(-((star - 1) * 4) + i * 8, top - 5, 'icon_star').setScale(0.85);
+      const img = scene.add.image(-((star - 1) * 4) + i * 8, top - 1, 'icon_star').setScale(0.85);
       this.stars.push(img);
       this.add(img);
     }
