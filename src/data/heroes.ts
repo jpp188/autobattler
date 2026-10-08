@@ -17,7 +17,7 @@ export const HEROES: readonly HeroDef[] = [
     cls: 'blade',
     flavor: 'A disgraced captain of the Jade Guard, cutting her way back into the Emperor’s favour.',
     sprite: 'hero_kaede',
-    look: { body: 'armor', skin: 'skin', hair: 'red', main: 'jade', accent: 'gold', hairStyle: 'ponytail', weapon: 'katana', extra: 'scarf', big: true },
+    look: { body: 'armor', build: 'slim', skin: 'skin', hair: 'red', main: 'jade', lower: 'ink', accent: 'gold', trim: 'red', hairStyle: 'ponytail', face: 'fierce', hat: 'headband', pauldron: 'layered', emblem: 'mon', weapon: 'katana', extra: 'scarf', big: true },
     stats: makeStats('fighter', 'rare', { hp: 2.65, ad: 1.2 }),
     passives: [
       { name: 'Captain’s Edge', trigger: 'static', stats: { crit: 0.15, critDmg: 0.2 } },
@@ -32,8 +32,8 @@ export const HEROES: readonly HeroDef[] = [
     perk: { name: 'Quartermaster', desc: 'Start each run with +1 bench slot.', effect: { k: 'benchSlots', n: 1 } },
     skins: [
       { id: 'kaede_default', name: 'Jade Captain', look: {} },
-      { id: 'kaede_crimson', name: 'Crimson Ronin', look: { main: 'red', accent: 'ink', hair: 'ink' }, unlockedBy: 'kaede_act2' },
-      { id: 'kaede_sakura', name: 'Sakura Festival', look: { main: 'pink', accent: 'steel', hair: 'pink' }, unlockedBy: 'kaede_win' },
+      { id: 'kaede_crimson', name: 'Crimson Ronin', look: { main: 'red', accent: 'ink', hair: 'ink', trim: 'snow', face: 'stern', mark: 'scar', hat: 'kasa', extra: 'cape' }, unlockedBy: 'kaede_act2' },
+      { id: 'kaede_sakura', name: 'Sakura Festival', look: { main: 'pink', accent: 'steel', hair: 'pink', trim: 'snow', pattern: 'sakura', face: 'calm', mark: 'blush', hat: 'kanzashi', extra: 'ribbons' }, unlockedBy: 'kaede_win' },
     ],
   },
   {
@@ -46,7 +46,7 @@ export const HEROES: readonly HeroDef[] = [
     cls: 'mystic',
     flavor: 'She read the end of the world in the stars and decided she disagreed.',
     sprite: 'hero_hoshi',
-    look: { body: 'robe', skin: 'skin', hair: 'blue', main: 'indigo', accent: 'gold', hairStyle: 'long', hat: 'halo', weapon: 'staff', extra: 'aura', big: true },
+    look: { body: 'robe', build: 'slim', skin: 'skin', hair: 'blue', main: 'indigo', lower: 'blue', accent: 'gold', trim: 'snow', eyes: 'teal', pattern: 'stars', hairStyle: 'long', face: 'calm', hat: 'halo', emblem: 'star', weapon: 'staff', extra: 'aura', big: true },
     stats: makeStats('caster', 'rare', { hp: 2.6, ad: 1.1 }),
     passives: [
       { name: 'Foresight', trigger: 'battleStart', steps: [step(S.allAllies, [E.shield(120, 6)], 'star')] },
@@ -61,8 +61,8 @@ export const HEROES: readonly HeroDef[] = [
     perk: { name: 'Fated Pull', desc: 'Your first pack each act has a Rare or better card.', effect: { k: 'firstPackRare' } },
     skins: [
       { id: 'hoshi_default', name: 'Starlit Oracle', look: {} },
-      { id: 'hoshi_eclipse', name: 'Eclipse', look: { main: 'ink', accent: 'red', hair: 'steel' }, unlockedBy: 'hoshi_act2' },
-      { id: 'hoshi_dawn', name: 'Dawn Priestess', look: { main: 'steel', accent: 'orange', hair: 'gold' }, unlockedBy: 'hoshi_win' },
+      { id: 'hoshi_eclipse', name: 'Eclipse', look: { main: 'ink', accent: 'red', hair: 'steel', eyes: 'red', pattern: 'none', emblem: 'moon', hat: 'crescent' }, unlockedBy: 'hoshi_act2' },
+      { id: 'hoshi_dawn', name: 'Dawn Priestess', look: { main: 'snow', lower: 'orange', accent: 'orange', trim: 'gold', hair: 'gold', eyes: 'orange', pattern: 'clouds', emblem: 'sun', hat: 'sun' }, unlockedBy: 'hoshi_win' },
     ],
   },
   {
@@ -75,7 +75,7 @@ export const HEROES: readonly HeroDef[] = [
     cls: 'guardian',
     flavor: 'Half oni, all stubborn. He guards a village that is still afraid of him.',
     sprite: 'hero_gorou',
-    look: { body: 'oni', skin: 'tan', hair: 'ink', main: 'blue', accent: 'gold', hairStyle: 'spiky', hat: 'horns', weapon: 'axe', extra: 'cape', big: true },
+    look: { body: 'oni', build: 'heavy', skin: 'tan', hair: 'ink', main: 'blue', lower: 'indigo', accent: 'gold', trim: 'gold', hairStyle: 'spiky', face: 'stern', beard: 'stubble', mark: 'tusks', hat: 'horn', pauldron: 'fur', neck: 'beads', weapon: 'axe', extra: 'cape', big: true },
     stats: makeStats('tank', 'rare', { hp: 2.2, ad: 1.15 }),
     passives: [
       { name: 'Warden’s Hide', trigger: 'static', stats: { armor: 25, mr: 15 } },
@@ -90,8 +90,8 @@ export const HEROES: readonly HeroDef[] = [
     perk: { name: 'Hoarder', desc: 'Start each run with +12 gold.', effect: { k: 'startGold', n: 12 } },
     skins: [
       { id: 'gorou_default', name: 'Village Warden', look: {} },
-      { id: 'gorou_ash', name: 'Ash Oni', look: { skin: 'steel', main: 'ink', accent: 'red' }, unlockedBy: 'gorou_act2' },
-      { id: 'gorou_festival', name: 'Festival Drummer', look: { main: 'red', accent: 'steel', hair: 'orange' }, unlockedBy: 'gorou_win' },
+      { id: 'gorou_ash', name: 'Ash Oni', look: { skin: 'steel', main: 'ink', lower: 'ink', accent: 'red', trim: 'red', mark: 'warpaint', hat: 'horns', pauldron: 'spiked' }, unlockedBy: 'gorou_act2' },
+      { id: 'gorou_festival', name: 'Festival Drummer', look: { main: 'red', lower: 'snow', accent: 'gold', trim: 'snow', hair: 'orange', pattern: 'waves', face: 'grin', hat: 'headband', back: 'drums', weapon: 'drumsticks', extra: 'none' }, unlockedBy: 'gorou_win' },
     ],
   },
 ];

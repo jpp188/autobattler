@@ -24,6 +24,18 @@ const ARTIFACT_SHAPES: Record<string, string[]> = {
   mirror: ['...bbbb...', '..bccccb..', '.bcAAAAcb.', '.bcAcAAcb.', '.bcAAAAcb.', '.bcAAAAcb.', '..bccccb..', '...bbbb...', '....bb....', '...bbbb...'],
   crown: ['..........', 'b...b...b.', 'bb.bAb.bb.', 'bAbAAAbAb.', 'bAAAcAAAb.', 'bAAAAAAAb.', 'bAcAAAcAb.', 'bbbbbbbbb.', '..........', '..........'],
   feather: ['.......bb.', '......bAb.', '.....bAAb.', '....bAAcb.', '...bAAAb..', '..bAAcb...', '..bAAb....', '.bAb......', '.bb.......', 'b.........'],
+  lantern: ['....bb....', '...bbbb...', '..bAcAAb..', '.bAcAAAAb.', '.bAAAAAAb.', '.baAAAAab.', '.bAAAAAAb.', '..bAAAAb..', '...bbbb...', '....bb....'],
+  sandals: ['..........', '.bbbb.....', 'bAcAAb....', 'bAAAAb....', 'bAaAAbbbb.', 'bAAAAbcAAb', '.bbbbbAAAb', '.....bAaAb', '.....bAAAb', '......bbb.'],
+  beads: ['...bAb....', '..bA.Ab...', '.bA...Ab..', 'bA.....Ab.', 'bA.....Ab.', '.bA...Ab..', '..bAcAb...', '...bAb....', '...bcb....', '..bbAbb...'],
+  charm: ['....bb....', '...b..b...', '...b..b...', '..bbbbbb..', '.bAAcAAAb.', '.bAcAAAab.', '.bAAAAAab.', '.bAAAAaab.', '..bAaaab..', '...bbbb...'],
+  mail: ['.bbbbbbbb.', 'bAcAAAAcAb', 'bAAaAAaAAb', '.bAAAAAAb.', '.bAaAAaAb.', '.bAAAAAAb.', '.bAaAAaAb.', '.bAAAAAAb.', '.bAAAAAAb.', '.bbbbbbbb.'],
+  fang: ['..........', '.bbbbbbbb.', '.bcAAAAAb.', '..bAAAAb..', '..bAAAab..', '...bAAb...', '...bAab...', '....bAb...', '....bb....', '..........'],
+  ofuda: ['.bbbbbbb..', '.bAAAAAb..', '.bAaaaAb..', '.bAAAAAb..', '.bAacaAb..', '.bAAaAAb..', '.bAAaAAb..', '.bAAAAAb..', '.bAAAAAb..', '.bbbbbbb..'],
+  dice: ['..........', '.bbbbbbb..', '.bAAAAAbb.', '.bAaAAAbab', '.bAAAAAbab', '.bAAAaAbab', '.bAAAAAbab', '.bbbbbbbab', '..baaaaaab', '...bbbbbb.'],
+  bell: ['....bb....', '...bccb...', '..bAAAAb..', '..bAcAAb..', '..bAAAAb..', '.bAcAAAAb.', '.bAAAAAab.', 'bbbbbbbbbb', '....bb....', '....bb....'],
+  blade: ['........bb', '.......bcb', '......bcAb', '.....bcAb.', '....bcAb..', '...bcAb...', '.bbcAb....', '.bbbb.....', 'b.bb......', 'bb........'],
+  bolt: ['.....bbb..', '....bAAb..', '...bAAb...', '..bAAb....', '.bAAAbbb..', '.bbbAAAb..', '...bAAb...', '..bAAb....', '..bAb.....', '..bb......'],
+  pearl: ['..........', '...bbbb...', '..bAAAAb..', '.bAccAAAb.', '.bAcAAAAb.', '.bAAAAAab.', '.bAAAAaab.', '..bAaaab..', '...bbbb...', '..........'],
   gem: ['..........', '..bbbbbb..', '.bAcAAAAb.', 'bAAAAAAAAb', '.bAAAAAAb.', '..bAAAAb..', '...bAAb...', '....bb....', '..........', '..........'],
 };
 

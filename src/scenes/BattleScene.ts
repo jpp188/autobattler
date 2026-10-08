@@ -13,6 +13,8 @@ import {
   boardTraitStatuses,
   buildBattle,
   enemyPower,
+  encounterUnits,
+  totals,
   heroMaxHp,
   markTutorial,
   ownedUnitStats,
@@ -256,7 +258,9 @@ export class BattleScene extends BaseScene {
     const run = G.run!;
     const b = run.battle!;
     const enc = getEncounter(b.encounter);
-    for (const eu of enc.units) {
+    const floor = nodeById(run.map, b.nodeId)?.floor ?? 0;
+    const t = totals(run);
+    for (const eu of encounterUnits(run.act, floor, b.kind, enc.units, b.seed)) {
       const def = getUnit(eu.unit);
       const hex = enemyToGrid(eu.col, eu.row);
       const p = hexPos(hex);
@@ -266,7 +270,7 @@ export class BattleScene extends BaseScene {
       v.on('pointerup', () => {
         const node = nodeById(run.map, b.nodeId);
         const mult = enemyPower(run.act, node?.floor ?? 0, b.kind);
-        this.inspect.show({ def, star: eu.star, stats: combatStats(def.stats, eu.star, { powerMult: mult }), extra: 'Enemy' });
+        this.inspect.show({ def, star: eu.star, stats: combatStats(def.stats, eu.star, { powerMult: mult, flat: t.enemyFlat, pct: t.enemyPct }), extra: 'Enemy' });
       });
       this.enemyPreview.push(v);
     }

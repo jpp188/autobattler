@@ -1,7 +1,7 @@
 /**
  * Sums up artifact effects so the rest of the game can ask simple questions.
  */
-import type { ArtifactDef, ArtifactEffect, CombatStatKey } from './types';
+import type { ArtifactDef, ArtifactEffect, CombatStatKey, PassiveDef, UnitFilter } from './types';
 
 export interface ArtifactTotals {
   boardLimit: number;
@@ -21,6 +21,13 @@ export interface ArtifactTotals {
   extraPackChoice: number;
   interest: { per: number; max: number } | null;
   sellBonus: number;
+  /** Filtered stat bonuses and passives, checked per unit when a battle is built. */
+  unitStats: { who: UnitFilter; stats: Partial<Record<CombatStatKey, number>>; pct: boolean }[];
+  unitPassives: { who: UnitFilter; passive: PassiveDef }[];
+  enemyFlat: Partial<Record<CombatStatKey, number>>;
+  enemyPct: Partial<Record<CombatStatKey, number>>;
+  restHeal: number;
+  freeRerolls: number;
 }
 
 function add(target: Partial<Record<CombatStatKey, number>>, stats: Partial<Record<CombatStatKey, number>>): void {
@@ -46,6 +53,12 @@ export function artifactTotals(defs: readonly ArtifactDef[]): ArtifactTotals {
     extraPackChoice: 0,
     interest: null,
     sellBonus: 0,
+    unitStats: [],
+    unitPassives: [],
+    enemyFlat: {},
+    enemyPct: {},
+    restHeal: 0,
+    freeRerolls: 0,
   };
   const apply = (e: ArtifactEffect) => {
     switch (e.k) {
@@ -94,9 +107,35 @@ export function artifactTotals(defs: readonly ArtifactDef[]): ArtifactTotals {
       case 'sellBonus':
         t.sellBonus += e.n;
         break;
+      case 'unitStats':
+        t.unitStats.push({ who: e.who, stats: e.stats, pct: !!e.pct });
+        break;
+      case 'unitPassive':
+        t.unitPassives.push({ who: e.who, passive: e.passive });
+        break;
+      case 'enemyStats':
+        add(e.pct ? t.enemyPct : t.enemyFlat, e.stats);
+        break;
+      case 'restHeal':
+        t.restHeal += e.pct;
+        break;
+      case 'freeRerolls':
+        t.freeRerolls += e.n;
+        break;
     }
   };
   for (const d of defs) d.effects.forEach(apply);
   t.shopDiscount = Math.min(50, t.shopDiscount);
   return t;
+}
+
+/** Whether an artifact's unit filter matches a board unit. */
+export function matchesFilter(who: UnitFilter, u: { role: string; row: number; star: number; isHero: boolean }): boolean {
+  if (who.heroOnly) return u.isHero;
+  if (u.isHero && who.hero === false) return false;
+  if (who.roles && !who.roles.includes(u.role as never)) return false;
+  if (who.row === 'front' && u.row !== 0) return false;
+  if (who.row === 'back' && u.row === 0) return false;
+  if (who.maxStar !== undefined && u.star > who.maxStar) return false;
+  return true;
 }

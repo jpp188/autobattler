@@ -1,7 +1,8 @@
 /**
  * Headless full-run bot: plays N complete runs with the simple AI and reports
  * win rate, average floor reached and any crash or softlock.
- *   npm run sim -- [runs] [startSeed]
+ *   npm run sim -- [runs] [startSeed] [--prologue]
+ * Runs start in Act I like every run after the first; --prologue plays it.
  */
 import { botStep } from '../src/core/bot';
 import { Rng } from '../src/core/rng';
@@ -11,6 +12,7 @@ import { validateRunState } from '../src/core/validate';
 
 const runs = Number(process.argv[2] ?? 50);
 const startSeed = Number(process.argv[3] ?? 1);
+const withPrologue = process.argv.includes('--prologue');
 let wins = 0;
 let floors = 0;
 let reachedAct2 = 0;
@@ -24,7 +26,7 @@ for (let i = 0; i < runs; i++) {
   const seed = startSeed + i * 7919;
   const hero = HEROES[i % HEROES.length];
   const rng = new Rng(seed ^ 0x9e3779b9);
-  let run: RunState = newRun(hero.id, hero.skins[0].id, seed);
+  let run: RunState = newRun(hero.id, hero.skins[0].id, seed, { skipPrologue: !withPrologue });
   let steps = 0;
   try {
     while (botStep(run, rng)) {

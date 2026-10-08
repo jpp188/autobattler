@@ -105,11 +105,18 @@ export const CONFIG = {
 
   enemy: {
     /** Enemy stat multiplier per act (index = act, 0 = prologue). */
-    actMult: [0.8, 1.0, 1.75, 2.85] as const,
+    actMult: [0.8, 0.82, 1.45, 2.3] as const,
     /** Additional multiplier per floor within an act. */
     floorMult: 0.035,
     eliteMult: 1.2,
     bossMult: 1.05,
+    /** Extra enemies per fight at floor 0 of each act (index = act). */
+    reinforceBase: [0, 0, 1, 2] as const,
+    /** One more enemy every this many floors. */
+    reinforceEveryFloors: 5,
+    reinforceMax: 6,
+    /** Reinforcements are 2★ from this floor on (index = act). */
+    reinforceTwoStarFloor: [99, 15, 8, 3] as const,
   },
 
   map: {

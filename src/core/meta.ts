@@ -20,6 +20,8 @@ export interface MetaState {
   stats: { runs: number; wins: number; bestFloor: number; packsOpened: number; legendaries: number };
   settings: Settings;
   tutorialDone: boolean;
+  /** The Prologue is played once per save; later runs start in Act I. */
+  prologueDone: boolean;
 }
 
 export function defaultMeta(): MetaState {
@@ -31,6 +33,7 @@ export function defaultMeta(): MetaState {
     stats: { runs: 0, wins: 0, bestFloor: 0, packsOpened: 0, legendaries: 0 },
     settings: { master: 0.8, music: 0.5, sfx: 0.8, muted: false, battleSpeed: 1, screenShake: true },
     tutorialDone: false,
+    prologueDone: false,
   };
 }
 
@@ -46,5 +49,7 @@ export function normalizeMeta(m: Partial<MetaState> | null): MetaState {
     selectedSkin: { ...(m.selectedSkin ?? {}) },
     collection: [...(m.collection ?? [])],
     achievements: [...(m.achievements ?? [])],
+    // Older saves: anyone who got past the Prologue (floor 5) has finished it.
+    prologueDone: m.prologueDone ?? (m.stats?.bestFloor ?? 0) > 5,
   };
 }
