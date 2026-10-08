@@ -41,7 +41,7 @@ async function start(): Promise<void> {
   };
   window.addEventListener('resize', resize);
   window.addEventListener('orientationchange', () => setTimeout(resize, 200));
-  (window as unknown as { __packbound: Phaser.Game }).__packbound = game;
+  if (import.meta.env.DEV) void import('./game/debug').then((m) => m.installDebug(game));
 }
 
 void start();

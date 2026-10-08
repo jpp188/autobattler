@@ -129,6 +129,8 @@ export interface RunState {
   act: number;
   map: ActMap;
   nodeId: string | null;
+  /** Node ids visited in the current act, in order. */
+  path: string[];
   /** Boss encounter per act index (1..3), chosen at run start. */
   bosses: string[];
   gold: number;
@@ -282,6 +284,7 @@ export function newRun(heroId: string, skinId: string, seed: number): RunState {
     act: 0,
     map: prologueMap(ENCOUNTERS),
     nodeId: null,
+    path: [],
     bosses,
     gold: CONFIG.economy.startGold + (hero.perk.effect.k === 'startGold' ? hero.perk.effect.n : 0),
     heroHp: 0,
@@ -435,6 +438,7 @@ export function enterNode(run: RunState, nodeId: string): void {
   if (!availableNodes(run).some((n) => n.id === nodeId)) throw new Error('Node not reachable');
   const node = nodeById(run.map, nodeId)!;
   run.nodeId = nodeId;
+  run.path.push(nodeId);
   switch (node.kind) {
     case 'battle':
     case 'elite':
@@ -495,6 +499,7 @@ export function startAct(run: RunState, act: number): void {
   });
   run.map = withRng(run, (rng) => generateActMap(act, rng, ENCOUNTERS, run.bosses[act]));
   run.nodeId = null;
+  run.path = [];
   run.flags.firstPackThisAct = true;
   run.screen = 'map';
   // Momentum 100: one random unit of that trait gains a star (once per act per trait).

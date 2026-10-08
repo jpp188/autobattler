@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { G } from '../game/state';
 import { makeUiTextures } from '../render/uiTextures';
+import { makeMapIcons } from '../render/mapIcons';
 import { externalSprites } from '../render/unitSprites';
 import { GAME_W, GAME_H } from './layout';
 import { label } from '../ui/widgets';
@@ -16,6 +17,7 @@ export class BootScene extends Phaser.Scene {
 
   preload(): void {
     makeUiTextures(this);
+    makeMapIcons(this);
     label(this, GAME_W / 2, GAME_H / 2, 'Loading...', { origin: [0.5, 0.5] });
     this.load.json('spriteManifest', 'sprites/manifest.json');
   }

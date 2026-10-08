@@ -2,7 +2,7 @@
  * Maps the run's current screen to a Phaser scene and switches to it.
  */
 import type Phaser from 'phaser';
-import { availableNodes, enterNode, type Screen } from '../core/run';
+import type { Screen } from '../core/run';
 import { G } from './state';
 
 const SCREEN_SCENES: Record<Screen, string> = {
@@ -26,10 +26,6 @@ export function goRun(scene: Phaser.Scene): void {
   if (!G.run) {
     goTo(scene, 'Title');
     return;
-  }
-  if (G.run.screen === 'map' && !scene.scene.manager.keys['Map']) {
-    // Interim until the map scene exists: go straight to the next node.
-    enterNode(G.run, availableNodes(G.run)[0].id);
   }
   G.saveRun();
   goTo(scene, SCREEN_SCENES[G.run.screen]);
