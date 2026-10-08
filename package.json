@@ -10,12 +10,14 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "sim": "tsx scripts/sim.ts"
+    "sim": "tsx scripts/sim.ts",
+    "battle": "tsx scripts/battle.ts"
   },
   "dependencies": {
     "phaser": "3.90.0"
   },
   "devDependencies": {
+    "@types/node": "^22.15.21",
     "tsx": "4.19.4",
     "typescript": "5.8.3",
     "vite": "6.3.5",

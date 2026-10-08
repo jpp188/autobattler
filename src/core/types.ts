@@ -246,6 +246,8 @@ export interface TraitBreakpoint {
   /** Applies to every ally rather than just units with the trait. */
   team?: boolean;
   passives: readonly PassiveDef[];
+  /** Passives given to just one unit with the trait (e.g. a single summon). */
+  leaderPassives?: readonly PassiveDef[];
   /** Run-level bonus (gold after a win and so on). */
   goldPerWin?: number;
 }
