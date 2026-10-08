@@ -117,6 +117,8 @@ export interface RunStats {
   bestPull: { unitId: string; rarity: Rarity } | null;
   damageByUnit: Record<string, number>;
   soloHeroWins: number;
+  /** Boss fights won without the Hero taking damage. */
+  flawlessBossWins?: number;
   maxMomentumPairs: number;
 }
 
@@ -314,6 +316,7 @@ export function newRun(heroId: string, skinId: string, seed: number): RunState {
       bestPull: null,
       damageByUnit: {},
       soloHeroWins: 0,
+      flawlessBossWins: 0,
       maxMomentumPairs: 0,
     },
     result: null,
@@ -638,6 +641,7 @@ export function resolveBattle(run: RunState, result: BattleResult): void {
     run.winStreak++;
     run.stats.battlesWon++;
     if (result.onlyHeroSurvived) run.stats.soloHeroWins++;
+    if (b.kind === 'boss' && result.heroDamageTaken === 0) run.stats.flawlessBossWins = (run.stats.flawlessBossWins ?? 0) + 1;
     goldLines.push([b.kind === 'boss' ? 'Boss defeated' : b.kind === 'elite' ? 'Elite defeated' : 'Victory', b.kind === 'boss' ? E.goldBoss : b.kind === 'elite' ? E.goldElite : E.goldBattle]);
     const streak = E.streakBonus[Math.min(run.winStreak, E.streakBonus.length - 1)];
     if (streak) goldLines.push([`Win streak x${run.winStreak}`, streak]);

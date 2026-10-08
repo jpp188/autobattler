@@ -78,3 +78,13 @@ export function getEncounter(id: string): EncounterDef {
 }
 export const ORIGIN_IDS = TRAITS.filter((t) => t.kind === 'origin').map((t) => t.id);
 export const CLASS_IDS = TRAITS.filter((t) => t.kind === 'class').map((t) => t.id);
+
+// ---------------------------------------------------------- achievements
+import { ACHIEVEMENTS } from './achievements';
+export { ACHIEVEMENTS };
+const achievementMap = new Map(ACHIEVEMENTS.map((a) => [a.id, a]));
+export function getAchievement(id: string) {
+  const a = achievementMap.get(id);
+  if (!a) throw new Error(`Unknown achievement ${id}`);
+  return a;
+}
