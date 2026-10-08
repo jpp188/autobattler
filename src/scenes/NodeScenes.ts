@@ -20,6 +20,7 @@ import {
   leaveRest,
   leaveShop,
   leaveTreasure,
+  markTutorial,
   openBonusPack,
   removeServicePrice,
   rerollCost,
@@ -285,6 +286,14 @@ export class ShopScene extends BaseScene {
       }),
     );
 
+    if (run.act === 0 && !run.flags.tutorialSeen.includes('shop')) {
+      modal(
+        this,
+        'THE SHOP: spend gold on packs, artifacts and services. Hover or hold a pack to see its exact odds. Packs that give copies of units you own will merge them into stronger units.',
+        [{ text: 'GOT IT', onClick: () => (markTutorial(run, 'shop'), G.saveRun()) }],
+        340,
+      );
+    }
     const cost = rerollCost(run);
     button(this, 14, 330, 150, 22, cost ? `REROLL PACKS ${cost}G` : 'REROLL PACKS FREE', () => {
       if (!rerollShop(run)) return this.cantAfford();

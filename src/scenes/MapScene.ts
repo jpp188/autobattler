@@ -236,6 +236,13 @@ export class MapScene extends BaseScene {
         [{ text: 'GOT IT', onClick: () => (markTutorial(run, 'map'), G.saveRun()) }],
         340,
       );
+    } else if (run.act === 0 && !run.flags.tutorialSeen.includes('merge') && run.roster.units.some((u) => !u.hero && u.star >= 2)) {
+      modal(
+        this,
+        'MERGING: two copies of a unit combine into a 2★ (about 1.8× stats and a stronger ultimate). Two 2★ make a 3★ (about 3.2×). A 3★ Common can beat a 1★ Epic, so collecting copies is a real strategy!',
+        [{ text: 'NICE', onClick: () => (markTutorial(run, 'merge'), G.saveRun()) }],
+        340,
+      );
     } else if (run.act === 1 && !run.path.length && !run.flags.tutorialSeen.includes('act1')) {
       modal(
         this,
