@@ -41,3 +41,40 @@ export function isHeroId(id: string): boolean {
 }
 /** Units that can come out of packs. */
 export const PACK_UNITS: readonly UnitDef[] = UNITS.filter((u) => !u.enemyOnly && !u.summon);
+
+// ------------------------------------------------------------- packs, artifacts, events, encounters
+import type { ArtifactDef, EncounterDef, EventDef, PackDef } from '../core/types';
+import { PACKS } from './packs';
+import { ARTIFACTS } from './artifacts';
+import { EVENTS } from './events';
+import { ENCOUNTERS, bossesForAct } from './encounters';
+
+export { PACKS, ARTIFACTS, EVENTS, ENCOUNTERS, bossesForAct };
+
+export const PACK_MAP: ReadonlyMap<string, PackDef> = new Map(PACKS.map((p) => [p.id, p]));
+const artifactMap = new Map<string, ArtifactDef>(ARTIFACTS.map((a) => [a.id, a]));
+const eventMap = new Map<string, EventDef>(EVENTS.map((e) => [e.id, e]));
+const encounterMap = new Map<string, EncounterDef>(ENCOUNTERS.map((e) => [e.id, e]));
+
+export function getPack(id: string): PackDef {
+  const p = PACK_MAP.get(id);
+  if (!p) throw new Error(`Unknown pack ${id}`);
+  return p;
+}
+export function getArtifact(id: string): ArtifactDef {
+  const a = artifactMap.get(id);
+  if (!a) throw new Error(`Unknown artifact ${id}`);
+  return a;
+}
+export function getEvent(id: string): EventDef {
+  const e = eventMap.get(id);
+  if (!e) throw new Error(`Unknown event ${id}`);
+  return e;
+}
+export function getEncounter(id: string): EncounterDef {
+  const e = encounterMap.get(id);
+  if (!e) throw new Error(`Unknown encounter ${id}`);
+  return e;
+}
+export const ORIGIN_IDS = TRAITS.filter((t) => t.kind === 'origin').map((t) => t.id);
+export const CLASS_IDS = TRAITS.filter((t) => t.kind === 'class').map((t) => t.id);

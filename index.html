@@ -36,6 +36,11 @@
         image-rendering: crisp-edges;
         display: block;
       }
+      @font-face {
+        font-family: 'Tiny5';
+        src: url('./fonts/Tiny5.woff2') format('woff2');
+        font-display: block;
+      }
       #fontwarm {
         font-family: 'PressStart2P';
         position: absolute;
@@ -45,7 +50,7 @@
     </style>
   </head>
   <body>
-    <div id="fontwarm">Packbound</div>
+    <div id="fontwarm">Packbound <span style="font-family: Tiny5">Packbound</span></div>
     <div id="game"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

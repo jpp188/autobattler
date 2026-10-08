@@ -15,7 +15,7 @@ function computeZoom(): number {
 
 async function start(): Promise<void> {
   try {
-    await document.fonts.load('8px PressStart2P');
+    await Promise.all([document.fonts.load('8px PressStart2P'), document.fonts.load('8px Tiny5')]);
   } catch {
     // The game still runs with the fallback font.
   }
