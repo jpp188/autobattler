@@ -30,6 +30,22 @@ npm run e2e        # builds, then clicks through the game in Chromium at 3 viewp
 The build is a static site in `dist/` with relative paths, so it can be
 hosted anywhere (itch.io, GitHub Pages, a plain web server).
 
+## Desktop app (Windows .exe)
+
+The same build also runs as a desktop app through Electron
+(`electron/main.cjs`).
+
+```bash
+npm run desktop    # build, then open the game in a desktop window
+npm run dist:win   # build Packbound.exe into release/Packbound-win32-x64/ and zip it
+```
+
+`dist:win` works from Windows, macOS or Linux (no wine needed). To play, unzip
+`Packbound-win32-x64.zip` and run `Packbound.exe`; keep the other files in the
+folder next to it. F11 toggles fullscreen. The exe is not code-signed, so
+Windows SmartScreen may warn on first launch ("More info", then "Run anyway").
+Saves are stored per Windows user.
+
 ## Controls
 
 Everything works with a mouse or with touch alone.

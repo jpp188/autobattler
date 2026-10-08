@@ -12,17 +12,22 @@
     "typecheck": "tsc --noEmit",
     "sim": "tsx scripts/sim.ts",
     "battle": "tsx scripts/battle.ts",
-    "e2e": "npm run build && node scripts/e2e.mjs"
+    "e2e": "npm run build && node scripts/e2e.mjs",
+    "desktop": "npm run build && electron .",
+    "dist:win": "npm run build && node scripts/package-win.mjs"
   },
   "dependencies": {
     "phaser": "3.90.0"
   },
   "devDependencies": {
+    "@electron/packager": "^18.4.4",
     "@types/node": "^22.15.21",
+    "electron": "^33.4.11",
     "playwright": "^1.56.1",
     "tsx": "4.19.4",
     "typescript": "5.8.3",
     "vite": "6.3.5",
     "vitest": "3.2.4"
-  }
+  },
+  "main": "electron/main.cjs"
 }
