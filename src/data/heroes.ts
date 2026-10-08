@@ -18,7 +18,7 @@ export const HEROES: readonly HeroDef[] = [
     flavor: 'A disgraced captain of the Jade Guard, cutting her way back into the Emperor’s favour.',
     sprite: 'hero_kaede',
     look: { body: 'armor', skin: 'skin', hair: 'red', main: 'jade', accent: 'gold', hairStyle: 'ponytail', weapon: 'katana', extra: 'scarf', big: true },
-    stats: makeStats('fighter', 'rare', { hp: 2.4, ad: 1.15 }),
+    stats: makeStats('fighter', 'rare', { hp: 2.65, ad: 1.2 }),
     passives: [
       { name: 'Captain’s Edge', trigger: 'static', stats: { crit: 0.15, critDmg: 0.2 } },
       { name: 'Second Wind', trigger: 'hpBelow', threshold: 0.35, steps: [step(S.self, [E.shield(0, 5, 0.25), E.buffPct('as', 30, 5)], 'jade')] },

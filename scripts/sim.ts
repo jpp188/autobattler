@@ -17,6 +17,7 @@ let reachedAct2 = 0;
 const actReached: number[] = [0, 0, 0, 0];
 const failures: string[] = [];
 const deathActs: Record<string, number> = {};
+const byHero: Record<string, [number, number]> = {};
 const t0 = Date.now();
 
 for (let i = 0; i < runs; i++) {
@@ -37,6 +38,9 @@ for (let i = 0; i < runs; i++) {
     failures.push(`seed ${seed} (${hero.id}): ${(e as Error).stack?.split('\n').slice(0, 3).join(' | ')}`);
     continue;
   }
+  byHero[hero.id] ??= [0, 0];
+  byHero[hero.id][1]++;
+  if (run.result?.won) byHero[hero.id][0]++;
   if (run.result?.won) wins++;
   else deathActs[`act${run.act}`] = (deathActs[`act${run.act}`] ?? 0) + 1;
   floors += floorReached(run);
@@ -50,6 +54,7 @@ console.log(`Win rate: ${((wins / Math.max(1, done)) * 100).toFixed(1)}%  (${win
 console.log(`Average floor reached: ${(floors / Math.max(1, done)).toFixed(1)}`);
 console.log(`Reached Act 2 or later: ${((reachedAct2 / Math.max(1, done)) * 100).toFixed(1)}%`);
 console.log(`Final act distribution: prologue ${actReached[0]}, act1 ${actReached[1]}, act2 ${actReached[2]}, act3 ${actReached[3]}`);
+console.log(`Wins by Hero: ${Object.entries(byHero).map(([h, [w, n]]) => `${h} ${w}/${n}`).join(', ')}`);
 console.log(`Losses by act: ${JSON.stringify(deathActs)}`);
 console.log(`Time: ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 for (const f of failures) console.log('FAIL', f);

@@ -11,13 +11,15 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "sim": "tsx scripts/sim.ts",
-    "battle": "tsx scripts/battle.ts"
+    "battle": "tsx scripts/battle.ts",
+    "e2e": "npm run build && node scripts/e2e.mjs"
   },
   "dependencies": {
     "phaser": "3.90.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.21",
+    "playwright": "^1.56.1",
     "tsx": "4.19.4",
     "typescript": "5.8.3",
     "vite": "6.3.5",

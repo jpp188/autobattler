@@ -1,0 +1,11 @@
+/* Bundled pixel fonts (see README.md in this folder for licences). */
+@font-face {
+  font-family: 'PressStart2P';
+  src: url('PressStart2P.woff2') format('woff2');
+  font-display: block;
+}
+@font-face {
+  font-family: 'Tiny5';
+  src: url('Tiny5.woff2') format('woff2');
+  font-display: block;
+}

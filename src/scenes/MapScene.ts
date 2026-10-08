@@ -145,6 +145,7 @@ export class MapScene extends BaseScene {
       if (!isAvail && !isVisited) icon.setAlpha(0.75);
       this.mapLayer.add([ring, icon]);
       if (isAvail) {
+        icon.setName('node-available');
         const glow = this.add.circle(p.x, p.y, 13, 0xfff2a8, 0.25);
         this.mapLayer.addAt(glow, this.mapLayer.getIndex(ring));
         this.tweens.add({ targets: [icon], scale: { from: n.kind === 'boss' ? 1.6 : 1, to: n.kind === 'boss' ? 1.8 : 1.2 }, duration: 520, yoyo: true, repeat: -1 });
