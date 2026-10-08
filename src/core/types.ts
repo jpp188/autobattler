@@ -178,18 +178,120 @@ export interface PassiveDef {
   once?: boolean;
 }
 
-/** Simple description of how to draw a unit in code (see src/art). */
+/** Simple description of how to draw a unit in code (see src/art and ART.md). */
 export interface SpriteLook {
-  body: 'robe' | 'armor' | 'light' | 'beast' | 'oni' | 'spirit' | 'bird' | 'serpent' | 'slime' | 'golem';
+  body: 'robe' | 'armor' | 'light' | 'beast' | 'oni' | 'spirit' | 'bird' | 'serpent' | 'slime' | 'golem' | 'skeleton' | 'spider';
+  /** Palette ramp names (see src/art/palette.ts). */
   skin: string;
   hair: string;
   main: string;
   accent: string;
-  hairStyle?: 'long' | 'short' | 'bun' | 'spiky' | 'ponytail' | 'twin' | 'hood' | 'none' | 'mane';
-  weapon?: 'sword' | 'katana' | 'bow' | 'staff' | 'fan' | 'spear' | 'claws' | 'daggers' | 'shield' | 'orb' | 'axe' | 'none';
-  hat?: 'none' | 'kasa' | 'crown' | 'horns' | 'halo' | 'ears' | 'mask' | 'helm' | 'antlers';
-  extra?: 'tail' | 'wings' | 'scarf' | 'cape' | 'aura' | 'none';
+  hairStyle?: 'long' | 'short' | 'bun' | 'spiky' | 'ponytail' | 'twin' | 'hood' | 'none' | 'mane' | 'topknot' | 'wild' | 'bob';
+  weapon?:
+    | 'sword'
+    | 'katana'
+    | 'bow'
+    | 'staff'
+    | 'fan'
+    | 'spear'
+    | 'claws'
+    | 'daggers'
+    | 'shield'
+    | 'orb'
+    | 'axe'
+    | 'none'
+    | 'naginata'
+    | 'kanabo'
+    | 'nodachi'
+    | 'shakujo'
+    | 'kusarigama'
+    | 'mallet'
+    | 'brush'
+    | 'gohei'
+    | 'lance'
+    | 'drumsticks'
+    | 'kiseru';
+  hat?:
+    | 'none'
+    | 'kasa'
+    | 'crown'
+    | 'horns'
+    | 'halo'
+    | 'ears'
+    | 'mask'
+    | 'helm'
+    | 'antlers'
+    | 'jingasa'
+    | 'eboshi'
+    | 'tokin'
+    | 'headband'
+    | 'leaf'
+    | 'dish'
+    | 'sun'
+    | 'crescent'
+    | 'imperial'
+    | 'hannya'
+    | 'kanzashi'
+    | 'horn'
+    | 'hood';
+  extra?: 'tail' | 'wings' | 'scarf' | 'cape' | 'aura' | 'ribbons' | 'none';
   big?: boolean;
+  // ---- Optional detail fields (all default to a plain look). ----
+  /** Silhouette width. */
+  build?: 'slim' | 'normal' | 'heavy';
+  /** Leg and torso length. */
+  height?: 'short' | 'normal' | 'tall';
+  /** Head/body shape for beast, bird, spirit, golem and beast-folk bodies. */
+  species?:
+    | 'fox'
+    | 'tanuki'
+    | 'monkey'
+    | 'kappa'
+    | 'rabbit'
+    | 'tengu'
+    | 'crow'
+    | 'komainu'
+    | 'lion'
+    | 'tiger'
+    | 'boar'
+    | 'kirin'
+    | 'nue'
+    | 'crane'
+    | 'phoenix'
+    | 'flame'
+    | 'wisp'
+    | 'lantern'
+    | 'kodama'
+    | 'statue'
+    | 'toro';
+  /** Ramp of the lower garment (hakama, trousers, skirt). */
+  lower?: string;
+  /** Third colour for trims, collars and linings. */
+  trim?: string;
+  /** Eye colour ramp. */
+  eyes?: string;
+  /** Facial expression. */
+  face?: 'calm' | 'fierce' | 'grin' | 'stern' | 'sly' | 'serene' | 'wild';
+  beard?: 'none' | 'stubble' | 'goatee' | 'long' | 'full' | 'mustache';
+  /** Face marking or accessory. */
+  mark?: 'none' | 'scar' | 'eyepatch' | 'warpaint' | 'tusks' | 'third_eye' | 'mask_cloth' | 'glasses' | 'blush';
+  pauldron?: 'none' | 'round' | 'layered' | 'spiked' | 'fur';
+  /** Belt or sash style. */
+  sash?: 'plain' | 'checker' | 'rope' | 'wave' | 'gold';
+  /** Pattern woven into the main garment, fur or scales. */
+  pattern?: 'none' | 'stripes' | 'spots' | 'scales' | 'checker' | 'clouds' | 'waves' | 'sakura' | 'stars' | 'patches' | 'flames';
+  /** Crest on the chest (or shield). */
+  emblem?: 'none' | 'mon' | 'star' | 'sun' | 'moon' | 'tomoe' | 'flame' | 'pompoms';
+  /** Worn on the back. */
+  back?: 'none' | 'banner' | 'quiver' | 'shell' | 'drums' | 'bell' | 'tokkuri' | 'flame_ring' | 'sword';
+  /** Held in the off hand or hung from the belt. */
+  prop?: 'none' | 'gourd' | 'scroll' | 'sake_cup' | 'conch' | 'talismans' | 'loot' | 'lantern';
+  neck?: 'none' | 'beads' | 'bib' | 'ruff' | 'collar';
+  wingStyle?: 'feather' | 'crow' | 'bat' | 'cloud';
+  tailStyle?: 'fluffy' | 'thin' | 'snake' | 'curl' | 'plume';
+  /** Number of tails (kitsune) or heads (Orochi). */
+  tails?: number;
+  heads?: number;
 }
 
 export interface UnitDef {
@@ -289,6 +391,8 @@ export interface PackDef {
   color: string;
   icon: string;
   cards: number;
+  /** How many of the revealed units the player keeps (default 1). */
+  keep?: number;
   weights: RarityWeights;
   /** Per-slot overrides (0-based slot index). */
   slotWeights?: Record<number, Partial<RarityWeights>>;
@@ -329,7 +433,30 @@ export type ArtifactEffect =
   | { k: 'heroMaxHp'; pct: number }
   | { k: 'extraPackChoice' }
   | { k: 'interest'; per: number; max: number }
-  | { k: 'sellBonus'; n: number };
+  | { k: 'sellBonus'; n: number }
+  /** Stats for the board units that match the filter. */
+  | { k: 'unitStats'; who: UnitFilter; stats: Partial<Record<CombatStatKey, number>>; pct?: boolean }
+  /** A passive added to every board unit that matches the filter. */
+  | { k: 'unitPassive'; who: UnitFilter; passive: PassiveDef }
+  /** Stat changes applied to every enemy (use negative numbers to weaken them). */
+  | { k: 'enemyStats'; stats: Partial<Record<CombatStatKey, number>>; pct?: boolean }
+  /** Extra Hero healing (percent of max HP) when resting. */
+  | { k: 'restHeal'; pct: number }
+  /** Free shop rerolls per shop visit. */
+  | { k: 'freeRerolls'; n: number };
+
+/** Which of your units an artifact effect applies to. Empty = all. */
+export interface UnitFilter {
+  roles?: readonly Role[];
+  /** Your front row (next to the enemy) or the rows behind it. */
+  row?: 'front' | 'back';
+  /** Only units at this star level or lower. */
+  maxStar?: Star;
+  /** Include the Hero (default true). */
+  hero?: boolean;
+  /** Only the Hero. */
+  heroOnly?: boolean;
+}
 
 export interface ArtifactDef {
   id: string;
