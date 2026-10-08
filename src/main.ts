@@ -1,6 +1,9 @@
 import Phaser from 'phaser';
 import { GAME_W, GAME_H } from './scenes/layout';
 import { SCENES } from './scenes';
+import { AudioOut } from './audio/engine';
+import { Sfx } from './audio/sfx';
+import { setClickHook } from './ui/widgets';
 
 /**
  * Integer scaling with letterboxing. When the window is at least twice the
@@ -14,6 +17,9 @@ function computeZoom(): number {
 }
 
 async function start(): Promise<void> {
+  // No sound plays until the first tap or key press.
+  AudioOut.installUnlock();
+  setClickHook(() => Sfx.play('click'));
   try {
     await Promise.all([document.fonts.load('8px PressStart2P'), document.fonts.load('8px Tiny5')]);
   } catch {

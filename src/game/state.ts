@@ -6,6 +6,7 @@ import { defaultMeta, normalizeMeta, type MetaState } from '../core/meta';
 import { newRun, type RunState } from '../core/run';
 import { randomSeed } from '../core/rng';
 import { SaveSystem } from '../core/save';
+import { AudioOut } from '../audio/engine';
 import { newAchievements } from '../core/achievements';
 import { floorReached } from '../core/run';
 import { rarityIndex, type AchievementDef } from '../core/types';
@@ -24,6 +25,7 @@ class GameState {
 
   load(): void {
     this.meta = normalizeMeta(this.save.loadMeta<MetaState>());
+    AudioOut.apply(this.meta.settings);
     this.run = this.save.loadRun<RunState>();
     if (this.run && (this.run.screen === 'over' || this.run.screen === 'victory') && !this.run.result) this.run = null;
   }
@@ -51,6 +53,7 @@ class GameState {
   }
 
   saveMeta(): void {
+    AudioOut.apply(this.meta.settings);
     this.save.saveMeta(this.meta);
   }
 
