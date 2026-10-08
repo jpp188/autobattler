@@ -248,3 +248,43 @@ export function goldText(scene: Phaser.Scene, x: number, y: number, amount: numb
   const t = label(scene, 10, 0, String(amount), { font: 'title', color: T.gold });
   return scene.add.container(x, y, [icon, t]);
 }
+
+/** A horizontal volume-style slider (0..1), draggable with mouse or touch. */
+export class Slider extends Phaser.GameObjects.Container {
+  private knob: Phaser.GameObjects.Rectangle;
+  private fill: Phaser.GameObjects.Rectangle;
+  private valueText: Phaser.GameObjects.Text;
+  value: number;
+  constructor(scene: Phaser.Scene, x: number, y: number, private sw: number, value: number, private onChange: (v: number) => void) {
+    super(scene, x, y);
+    this.value = value;
+    const track = scene.add.rectangle(0, 4, sw, 4, 0x07050b).setOrigin(0, 0);
+    this.fill = scene.add.rectangle(0, 4, sw * value, 4, C.gold).setOrigin(0, 0);
+    this.knob = scene.add.rectangle(sw * value, 6, 6, 12, 0xf4f6ff).setStrokeStyle(1, 0x120c1c);
+    this.valueText = label(scene, sw + 8, 2, '', { color: T.text });
+    const zone = scene.add.zone(-6, -4, sw + 12, 20).setOrigin(0, 0).setInteractive({ useHandCursor: true });
+    this.add([track, this.fill, this.knob, this.valueText, zone]);
+    const setFrom = (p: Phaser.Input.Pointer) => {
+      const m = this.getWorldTransformMatrix();
+      this.set(Phaser.Math.Clamp((p.x - m.tx) / this.sw, 0, 1), true);
+    };
+    let dragging = false;
+    zone.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      dragging = true;
+      setFrom(p);
+    });
+    scene.input.on('pointermove', (p: Phaser.Input.Pointer) => {
+      if (dragging && p.isDown) setFrom(p);
+    });
+    scene.input.on('pointerup', () => (dragging = false));
+    this.set(value, false);
+    scene.add.existing(this);
+  }
+  set(v: number, notify: boolean): void {
+    this.value = Math.round(v * 20) / 20;
+    this.fill.width = Math.round(this.sw * this.value);
+    this.knob.x = Math.round(this.sw * this.value);
+    this.valueText.setText(`${Math.round(this.value * 100)}%`);
+    if (notify) this.onChange(this.value);
+  }
+}

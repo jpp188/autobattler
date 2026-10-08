@@ -7,6 +7,7 @@ import { actName, heroMaxHp, type RunState } from '../core/run';
 import { getArtifact } from '../data';
 import { artifactTexture } from '../render/icons';
 import { GAME_W } from '../scenes/layout';
+import { goTo } from '../game/router';
 import { C, T } from './theme';
 import { Bar, label, withTooltip, type Tooltip } from './widgets';
 
@@ -17,6 +18,8 @@ export class RunHud {
   private goldText: Phaser.GameObjects.Text;
   private actText: Phaser.GameObjects.Text;
   private artifacts: Phaser.GameObjects.Container;
+  /** The settings button (hidden while a fight is playing). */
+  menuBtn: Phaser.GameObjects.Image;
 
   constructor(
     private scene: Phaser.Scene,
@@ -37,6 +40,11 @@ export class RunHud {
     const hpZone = scene.add.zone(296, 1, 130, 16).setOrigin(0, 0);
     withTooltip(hpZone, tip, () => `Hero HP: ${this.run.heroHp}/${heroMaxHp(this.run)}\nYour Hero's HP is the run's life. If your Hero dies in battle, the run ends. Heals 10% after each win.`);
     this.container.add(hpZone);
+    // Settings, reachable from every run screen.
+    this.menuBtn = scene.add.image(497, 4, 'icon_gear').setOrigin(0, 0).setInteractive({ useHandCursor: true });
+    this.menuBtn.on('pointerup', () => goTo(scene, 'Settings', { back: scene.scene.key }));
+    withTooltip(this.menuBtn, tip, () => 'Settings');
+    this.container.add(this.menuBtn);
     this.refresh();
   }
 
@@ -48,7 +56,7 @@ export class RunHud {
     this.goldText.setText(String(this.run.gold));
     this.artifacts.removeAll(true);
     const n = this.run.artifacts.length;
-    const maxShow = 11;
+    const maxShow = 9;
     const startX = GAME_W - 4 - Math.min(n, maxShow) * 13;
     this.run.artifacts.slice(0, maxShow).forEach((id, i) => {
       const def = getArtifact(id);

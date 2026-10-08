@@ -65,6 +65,13 @@ export class TitleScene extends BaseScene {
         ]);
       } else goTo(this, 'HeroSelect');
     });
+    y += 30;
+    const small = [
+      ['COLLECTION', 'Collection'],
+      ['ACHIEVEMENTS', 'Achievements'],
+      ['SETTINGS', 'Settings'],
+    ] as const;
+    small.forEach(([text, key], i) => button(this, GAME_W / 2 - 165 + i * 112, y, 104, 20, text, () => goTo(this, key)));
     const s = G.meta.stats;
     if (s.runs) label(this, GAME_W / 2, GAME_H - 14, `Runs ${s.runs}  ·  Wins ${s.wins}  ·  Best floor ${s.bestFloor}  ·  Units found ${G.meta.collection.length}`, { color: T.dim, origin: [0.5, 0] });
   }
@@ -93,7 +100,7 @@ export class HeroSelectScene extends BaseScene {
   }
 
   private draw(): void {
-    this.children.removeAll(true);
+    this.clearAll();
     drawBackdrop(this, 0, 'menu');
     title(this, GAME_W / 2, 10, 'CHOOSE YOUR HERO', T.title, 10);
     label(this, GAME_W / 2, 26, 'Your Hero fights on the board. Their HP is the run: if they fall, the run ends.', { color: T.dim, origin: [0.5, 0] });

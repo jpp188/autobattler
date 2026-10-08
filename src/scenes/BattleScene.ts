@@ -442,6 +442,7 @@ export class BattleScene extends BaseScene {
 
   private startFight(): void {
     if (this.phase !== 'setup') return;
+    this.hud.menuBtn.setVisible(false);
     const run = G.run!;
     this.phase = 'fight';
     this.inspect.hide();

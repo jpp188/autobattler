@@ -311,7 +311,7 @@ export class ShopScene extends BaseScene {
 
   private cantAfford(): void {
     Sfx.play('error');
-    this.cameras.main.shake(80, 0.004);
+    if (G.meta.settings.screenShake) this.cameras.main.shake(80, 0.004);
   }
 }
 

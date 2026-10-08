@@ -25,6 +25,14 @@ export class BaseScene extends Phaser.Scene {
     drain();
   }
 
+  /** Clears the scene for a redraw, keeping a working tooltip. */
+  protected clearAll(): void {
+    this.tweens.killAll();
+    this.time.removeAllEvents();
+    this.children.removeAll(true);
+    this.tip = new Tooltip(this);
+  }
+
   private toastBusy = false;
 
   private showToasts(): void {

@@ -80,6 +80,15 @@ export function makeUiTextures(scene: Phaser.Scene): void {
     drawGrid(c, 0, 0, ['...y...', '..yYy..', 'yyYYYyy', '.yYYYy.', '.yYyYy.', 'yy...yy', '.......'], { y: '#c4922a', Y: '#fff2a8' }),
   );
   makeTexture(scene, 'icon_sword', 9, 9, (c) => drawGrid(c, 0, 0, ICONS.sword, ICON_COLORS));
+  makeTexture(scene, 'icon_gear', 11, 11, (c) =>
+    drawGrid(
+      c,
+      0,
+      0,
+      ['....a.a....', '..a.aaa.a..', '.aaaaaaaaa.', '..aab.baa..', 'aaab...baaa', '.aa.....aa.', 'aaab...baaa', '..aab.baa..', '.aaaaaaaaa.', '..a.aaa.a..', '....a.a....'],
+      { a: '#bcc2d2', b: '#7e8498' },
+    ),
+  );
   for (const [k, rows] of Object.entries(ICONS)) makeTexture(scene, `ticon_${k}`, 9, 9, (c) => drawGrid(c, 0, 0, rows, ICON_COLORS));
 
   // Hex tiles (pointy-top, 32 wide, 26 tall incl. a 2px side).
